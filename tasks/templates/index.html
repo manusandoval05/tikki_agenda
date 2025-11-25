@@ -237,9 +237,8 @@
 
                                         </p>
 
-                                        <!-- Quick actions (wiring up is up to you) -->
+                                        
                                         <div class="buttons is-right mt-3">
-                                            {# Example placeholders: wire to your URLs if you have them #}
                                             <form method="post" action="{% url 'task_delete' task.pk %}" style="display:inline;"
                                             onsubmit="return confirm('Are you sure you want to delete this task?');">
                                                 {% csrf_token %}
@@ -247,15 +246,19 @@
                                                     <span class="icon is-small"><i class="fas fa-trash"></i></span>
                                                 </button>
                                             </form>
-                                            <a href="" class="button is-small is-light">
-                                                <span class="icon is-small"><i class="fas fa-trash"></i></span>
-                                            </a>
                                             <a href="" class="button is-small is-info is-light">
                                                 <span class="icon is-small"><i class="fas fa-pen"></i></span>
                                             </a>
-                                            <a href="" class="button is-small {% if task.completed %}is-warning{% else %}is-success{% endif %}">
-                                               <span class="icon is-small"><i class="fas fa-check"></i></span>
-                                            </a>
+                                            <form method="post" action="{% url 'task_toggle_completed' task.pk %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="button is-small {% if task.completed %}is-warning{% else %}is-success{% endif %}">
+                                                    <span class="icon is-small">
+                                                        <i class="fas fa-check"></i>
+                                                    </span>
+                                                    <span>{% if task.completed %}Mark as pending{% else %}Mark as done{% endif %}</span>
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -276,13 +279,6 @@
                 <div class="box">
                     <p class="title is-6">Overview</p>
                     <p class="is-size-7">Total tasks: <strong>{{ tasks|length }}</strong></p>
-                    {# For more detailed stats (completed/pending), add them in the view context #}
-                    <progress class="progress is-small is-info" value="0" max="100">
-                        Loading…
-                    </progress>
-                    <p class="is-size-7 has-text-grey">
-                        You can later bind this progress bar to “% completed” from the view.
-                    </p>
                 </div>
 
                 <!-- Legend -->
@@ -295,16 +291,6 @@
                         <p><span class="tag is-warning is-light is-rounded">Priority 3</span> Medium priority</p>
                         <p><span class="tag is-info is-light is-rounded">Priority 1–2</span> Low priority</p>
                     </div>
-                </div>
-
-                <!-- Tips / Notes -->
-                <div class="box">
-                    <p class="title is-6">Tips</p>
-                    <ul class="is-size-7">
-                        <li>Use the filters above to focus on urgent tasks.</li>
-                        <li>Use tags to group tasks by project or context.</li>
-                        <li>Sort by priority to handle critical items first.</li>
-                    </ul>
                 </div>
 
             </div>
