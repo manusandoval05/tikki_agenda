@@ -1,0 +1,309 @@
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tasks</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<section class="section">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="level">
+            <div class="level-left">
+                <div>
+                    <h1 class="title">Task List</h1>
+                    <p class="subtitle is-6">
+                        Manage your tasks, priorities and tags.
+                    </p>
+                </div>
+            </div>
+            <div class="level-right">
+                <nav class="breadcrumb is-small" aria-label="breadcrumbs">
+                    <ul>
+                        <li class="is-active"><a>Tasks</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Toolbar / Utilities (GET form for filtering/search) -->
+        <div class="box">
+            <form method="get" class="columns is-multiline is-vcentered">
+
+                <!-- Search -->
+                <div class="column is-12-tablet is-4-desktop">
+                    <div class="field">
+                        <label class="label is-small">Search</label>
+                        <div class="control has-icons-left">
+                            <input class="input is-small" type="text" name="q"
+                                   placeholder="Search by title or description"
+                                   value="{{ request.GET.q|default_if_none:'' }}">
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status filter -->
+                <div class="column is-6-tablet is-2-desktop">
+                    <div class="field">
+                        <label class="label is-small">Status</label>
+                        <div class="control">
+                            <div class="select is-small is-fullwidth">
+                                <select name="status">
+                                    <option value="">All</option>
+                                    <option value="open" {% if request.GET.status == "open" %}selected{% endif %}>Open</option>
+                                    <option value="completed" {% if request.GET.status == "completed" %}selected{% endif %}>Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority filter -->
+                <div class="column is-6-tablet is-2-desktop">
+                    <div class="field">
+                        <label class="label is-small">Min. Priority</label>
+                        <div class="control">
+                            <div class="select is-small is-fullwidth">
+                                <select name="min_priority">
+                                    <option value="">Any</option>
+                                    {% for p in "12345" %}
+                                        <option value="{{ p }}"
+                                          {% if request.GET.min_priority == p %}selected{% endif %}>{{ p }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sort -->
+                <div class="column is-6-tablet is-2-desktop">
+                    <div class="field">
+                        <label class="label is-small">Sort by</label>
+                        <div class="control">
+                            <div class="select is-small is-fullwidth">
+                                <select name="order">
+                                    <option value="">Default</option>
+                                    <option value="date" {% if request.GET.order == "date" %}selected{% endif %}>Date (asc)</option>
+                                    <option value="-date" {% if request.GET.order == "-date" %}selected{% endif %}>Date (desc)</option>
+                                    <option value="priority" {% if request.GET.order == "priority" %}selected{% endif %}>Priority (low → high)</option>
+                                    <option value="-priority" {% if request.GET.order == "-priority" %}selected{% endif %}>Priority (high → low)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Show completed toggle -->
+                <div class="column is-6-tablet is-2-desktop">
+                    <div class="field">
+                        <label class="label is-small">Completed</label>
+                        <div class="control">
+                            <label class="checkbox is-small">
+                                <input type="checkbox" name="hide_completed"
+                                       value="1"
+                                    {% if request.GET.hide_completed == "1" %}checked{% endif %}>
+                                Hide completed
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="column is-12-tablet is-4-desktop has-text-right">
+                    <div class="field is-grouped is-grouped-right is-grouped-multiline">
+                        <p class="control">
+                            <button type="submit" class="button is-link is-small">
+                                <span class="icon is-small">
+                                    <i class="fas fa-filter"></i>
+                                </span>
+                                <span>Apply</span>
+                            </button>
+                        </p>
+                        <p class="control">
+                            <a href="{% url 'index' %}" class="button is-light is-small">
+                                <span class="icon is-small">
+                                    <i class="fas fa-rotate-left"></i>
+                                </span>
+                                <span>Reset</span>
+                            </a>
+                        </p>
+                        {# Optional: link to task creation view if you have one #}
+                        <p class="control">
+                            <a href="{% url 'create_task' %}" class="button is-primary is-small">
+                                <span class="icon is-small"><i class="fas fa-plus"></i></span>
+                                <span>New Task</span>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="columns">
+
+            <!-- Main task list -->
+            <div class="column is-9">
+                {% if tasks %}
+                    {% for task in tasks %}
+                        <article class="box {% if task.completed %}has-background-light{% endif %}">
+                            <div class="level">
+                                <div class="level-left">
+                                    <div>
+                                        <p class="title is-5">
+                                            {% if task.completed %}
+                                                <span class="icon has-text-success">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </span>
+                                            {% else %}
+                                                <span class="icon has-text-warning">
+                                                    <i class="far fa-circle"></i>
+                                                </span>
+                                            {% endif %}
+
+                                            {{ task.title }}
+                                        </p>
+
+                                        {% if task.description %}
+                                            <p class="content is-small">
+                                                {{ task.description|truncatechars:180 }}
+                                            </p>
+                                        {% endif %}
+
+                                        <!-- Tags -->
+                                        {% if task.tags.all %}
+                                            <div class="tags">
+                                                {% for tag in task.tags.all %}
+                                                    <span class="tag is-info is-light is-rounded">
+                                                        {{ tag.name }}
+                                                    </span>
+                                                {% empty %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="level-right">
+                                    <div class="has-text-right">
+
+                                        <!-- Date -->
+                                        <p class="is-size-7 has-text-grey">
+                                            {% if task.date %}
+                                                <span class="icon is-small">
+                                                    <i class="far fa-calendar-alt"></i>
+                                                </span>
+                                                {{ task.date }}
+                                            {% else %}
+                                                <span class="tag is-light is-warning is-rounded is-size-7">
+                                                    No date
+                                                </span>
+                                            {% endif %}
+                                        </p>
+
+                                        <!-- Priority badge -->
+                                        <p class="mt-2">
+                                            
+                                            {% with task.priority|default:3 as pr %}
+                                            {% if pr >= 4 %}
+                                                {% with "is-danger" as priority_color %}
+                                                    <span class="tag {{ priority_color }} is-light is-rounded is-size-7">
+                                                        Priority: {{ pr }}
+                                                    </span>
+                                                {% endwith %}
+                                            {% elif pr == 3 %}
+                                                {% with "is-warning" as priority_color %}
+                                                    <span class="tag {{ priority_color }} is-light is-rounded is-size-7">
+                                                        Priority: {{ pr }}
+                                                    </span>
+                                                {% endwith %}
+                                            {% else %}
+                                                {% with "is-info" as priority_color %}
+                                                    <span class="tag {{ priority_color }} is-light is-rounded is-size-7">
+                                                        Priority: {{ pr }}
+                                                    </span>
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endwith %}
+
+                                        </p>
+
+                                        <!-- Quick actions (wiring up is up to you) -->
+                                        <div class="buttons is-right mt-3">
+                                            {# Example placeholders: wire to your URLs if you have them #}
+                                            <a href="" class="button is-small is-light">
+                                                <span class="icon is-small"><i class="fas fa-trash"></i></span>
+                                            </a>
+                                            <a href="" class="button is-small is-info is-light">
+                                                <span class="icon is-small"><i class="fas fa-pen"></i></span>
+                                            </a>
+                                            <a href="" class="button is-small {% if task.completed %}is-warning{% else %}is-success{% endif %}">
+                                               <span class="icon is-small"><i class="fas fa-check"></i></span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="notification is-light">
+                        No tasks found. Try changing the filters or create a new task.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Side utilities -->
+            <div class="column is-3">
+
+                <!-- Quick stats (basic, uses only tasks|length) -->
+                <div class="box">
+                    <p class="title is-6">Overview</p>
+                    <p class="is-size-7">Total tasks: <strong>{{ tasks|length }}</strong></p>
+                    {# For more detailed stats (completed/pending), add them in the view context #}
+                    <progress class="progress is-small is-info" value="0" max="100">
+                        Loading…
+                    </progress>
+                    <p class="is-size-7 has-text-grey">
+                        You can later bind this progress bar to “% completed” from the view.
+                    </p>
+                </div>
+
+                <!-- Legend -->
+                <div class="box">
+                    <p class="title is-6">Legend</p>
+                    <div class="content is-size-7">
+                        <p><span class="icon has-text-success"><i class="fas fa-check-circle"></i></span> Completed task</p>
+                        <p><span class="icon has-text-warning"><i class="far fa-circle"></i></span> Open task</p>
+                        <p><span class="tag is-danger is-light is-rounded">Priority 4–5</span> High priority</p>
+                        <p><span class="tag is-warning is-light is-rounded">Priority 3</span> Medium priority</p>
+                        <p><span class="tag is-info is-light is-rounded">Priority 1–2</span> Low priority</p>
+                    </div>
+                </div>
+
+                <!-- Tips / Notes -->
+                <div class="box">
+                    <p class="title is-6">Tips</p>
+                    <ul class="is-size-7">
+                        <li>Use the filters above to focus on urgent tasks.</li>
+                        <li>Use tags to group tasks by project or context.</li>
+                        <li>Sort by priority to handle critical items first.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>
+{% endblock %}
