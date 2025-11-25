@@ -11,6 +11,7 @@ To install the program, please do:
     python3 -m venv venv
 
 Activate in macOS / Linux
+    
     source venv/bin/activate
 
 Install dependencies 
