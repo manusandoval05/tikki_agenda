@@ -10,7 +10,7 @@ To install the program, please do:
     cd tikki_agenda
     python3 -m venv venv
 
-Activate in macOS / Linux
+Activate venv in macOS / Linux
     
     source venv/bin/activate
 
