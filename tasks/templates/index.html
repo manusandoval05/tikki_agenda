@@ -109,7 +109,7 @@
                             </a>
                         </p>
                         <p class="control">
-                            <a href="{% url 'create_task' %}" class="button is-primary is-small">
+                            <a href="{% url 'task_create' %}" class="button is-primary is-small">
                                 <span class="icon is-small"><i class="fas fa-plus"></i></span>
                                 <span>New Task</span>
                             </a>
@@ -212,7 +212,7 @@
                                                     <span class="icon is-small"><i class="fas fa-trash"></i></span>
                                                 </button>
                                             </form>
-                                            <a href="" class="button is-small is-info is-light">
+                                            <a href="{% url 'task_update' task.pk %}" class="button is-small is-info is-light">
                                                 <span class="icon is-small"><i class="fas fa-pen"></i></span>
                                             </a>
                                             <form method="post" action="{% url 'task_toggle_completed' task.pk %}" style="display:inline;">
