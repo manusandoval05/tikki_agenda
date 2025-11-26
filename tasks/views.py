@@ -3,38 +3,83 @@ from django.views.generic import CreateView, UpdateView
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django import forms
-from .models import Task
+from .models import Task, Tag
 
 
 class TaskCreateView(CreateView):
     model = Task
-    fields = ["title", "description", "priority", "date"]
-
+    fields = ["title", "description", "priority", "date", "tags"]
     template_name = "task_form.html"
     success_url = "/"
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
+
+        # HTML5 date input with ISO format + Bulma class
         form.fields["date"].widget = forms.DateInput(
-            format="%Y-%m-%d", attrs={"type": "date", "class": "input"}
+            format="%Y-%m-%d",
+            attrs={"type": "date", "class": "input"},
         )
         form.fields["date"].input_formats = ["%Y-%m-%d"]
+
+        # Style tags as Bulma multiple select (even if later you hide it for chips)
+        form.fields["tags"].widget = forms.SelectMultiple(
+            attrs={"class": "select is-multiple", "size": 6}
+        )
+
         return form
+
+    def form_valid(self, form):
+        # First save the Task (without yet handling new tags)
+        response = super().form_valid(form)
+
+        # Read comma-separated new tags from POST (chips JS will populate this)
+        raw_new_tags = self.request.POST.get("new_tags", "")
+        if raw_new_tags:
+            names = [t.strip() for t in raw_new_tags.split(",") if t.strip()]
+            for name in names:
+                tag, _ = Tag.objects.get_or_create(name=name)
+                self.object.tags.add(tag)  # self.object is the created Task
+
+        return response
 
 
 class TaskUpdateView(UpdateView):
     model = Task
-    fields = ["title", "description", "priority", "date", "completed"]
+    fields = ["title", "description", "priority", "date", "completed", "tags"]
     template_name = "task_form.html"
     success_url = "/"
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
+
+        # HTML5 date input with ISO format + Bulma class
         form.fields["date"].widget = forms.DateInput(
-            format="%Y-%m-%d", attrs={"type": "date", "class": "input"}
+            format="%Y-%m-%d",
+            attrs={"type": "date", "class": "input"},
         )
         form.fields["date"].input_formats = ["%Y-%m-%d"]
+
+        # Style tags as Bulma multiple select (even if later you hide it for chips)
+        form.fields["tags"].widget = forms.SelectMultiple(
+            attrs={"class": "select is-multiple", "size": 6}
+        )
+
         return form
+
+    def form_valid(self, form):
+        # First save the Task (without yet handling new tags)
+        response = super().form_valid(form)
+
+        # Read comma-separated new tags from POST (chips JS will populate this)
+        raw_new_tags = self.request.POST.get("new_tags", "")
+        if raw_new_tags:
+            names = [t.strip() for t in raw_new_tags.split(",") if t.strip()]
+            for name in names:
+                tag, _ = Tag.objects.get_or_create(name=name)
+                self.object.tags.add(tag)  # self.object is the created Task
+
+        return response
 
 
 def index(request):
