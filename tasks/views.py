@@ -2,14 +2,24 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import CreateView, UpdateView
 from django.views.decorators.http import require_POST
 from django.db.models import Q
+from django import forms
 from .models import Task
 
 
 class TaskCreateView(CreateView):
     model = Task
     fields = ["title", "description", "priority", "date"]
+
     template_name = "task_form.html"
     success_url = "/"
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields["date"].widget = forms.DateInput(
+            format="%Y-%m-%d", attrs={"type": "date", "class": "input"}
+        )
+        form.fields["date"].input_formats = ["%Y-%m-%d"]
+        return form
 
 
 class TaskUpdateView(UpdateView):
@@ -17,6 +27,14 @@ class TaskUpdateView(UpdateView):
     fields = ["title", "description", "priority", "date", "completed"]
     template_name = "task_form.html"
     success_url = "/"
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields["date"].widget = forms.DateInput(
+            format="%Y-%m-%d", attrs={"type": "date", "class": "input"}
+        )
+        form.fields["date"].input_formats = ["%Y-%m-%d"]
+        return form
 
 
 def index(request):
