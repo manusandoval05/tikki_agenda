@@ -8,7 +8,7 @@ from .models import Task, Tag
 class TaskMethods:
     template_name = "task_form.html"
     model = Task
-    fields = ["title", "description", "priority", "date","tags"] 
+    fields = ["title", "description", "priority", "date", "completed"] 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields["title"].widget = forms.TextInput(
