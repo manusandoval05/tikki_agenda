@@ -36,14 +36,14 @@
                     <div class="control">
                         {{ form.title }}
                     </div>
-                </div>
+                  </div>
 
                   <div class="field">
                     <label class="label">Description</label>
                     <div class="control">
                         {{ form.description }}
                     </div>
-                </div>
+                  </div>
 
                   <div class="field">
                     <label class="label">Date</label>
@@ -65,16 +65,7 @@
 
                   <div class="field">
                     <label class="label">Priority (1 = Low, 5 = High)</label>
-                    <div class="control">
-                      <input
-                        class="input"
-                        type="number"
-                        name="priority"
-                        min="1"
-                        max="5"
-                        value="{{ form.priority.value|default:3 }}"
-                      />
-                    </div>
+                    <div class="control">{{ form.date }}</div>
                   </div>
 
                   <div class="field">

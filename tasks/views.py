@@ -8,7 +8,7 @@ from .models import Task, Tag
 class TaskMethods:
     template_name = "task_form.html"
     model = Task
-    fields = ["title", "description", "priority", "date"] 
+    fields = ["title", "description", "priority", "date","tags"] 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields["title"].widget = forms.TextInput(
@@ -22,6 +22,15 @@ class TaskMethods:
             attrs={"type": "date", "class": "input"},
         )
         form.fields["date"].input_formats = ["%Y-%m-%d"]
+
+        form.fields["priority"].widget = forms.NumberInput(
+            attrs={
+                "class": "input",      
+                "placeholder": "1-5",  
+                "min": "1",            
+                "max": "5"             
+            }
+        )
 
         return form
 
