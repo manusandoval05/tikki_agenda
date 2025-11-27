@@ -1,14 +1,81 @@
-{% block content %}
-<h1>Login</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - TikiTiki Agenda</title>
 
-<form method="post">
-  {% csrf_token %} {{ form.as_p }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
 
-  <button type="submit" class="button is-primary">Login</button>
-</form>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
 
-<p>
-  <a href="{% url 'password_reset' %}">Forgot password?</a>
-</p>
-<p>No account? Register <a href="{% url 'register' %}">here</a>.</p>
-{% endblock %}
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered is-vcentered" style="min-height: 80vh;">
+                
+                <div class="column is-8-tablet is-6-desktop">
+
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">
+                                Login
+                            </p>
+                        </header>
+
+                        <div class="card-content">
+                            <form method="post">
+                                {% csrf_token %}
+
+                                {% if form.errors %}
+                                <div class="notification is-danger is-light is-size-7">
+                                    <button class="delete" type="button" onclick="this.parentElement.style.display='none'"></button>
+                                    Your username and password didn't match. Please try again.
+                                </div>
+                                {% endif %}
+
+                                <div class="field">
+                                    <label class="label">Username</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="text" name="username" placeholder="Username" autofocus required id="id_username">
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label class="label">Password</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="password" name="password" placeholder="Password" required id="id_password">
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="field is-grouped is-grouped-right mt-5">
+                                    <p class="control">
+                                        <a href="{% url 'register' %}" class="button is-light">
+                                            Register
+                                        </a>
+                                    </p>
+                                    <p class="control">
+                                        <button type="submit" class="button is-primary">
+                                            <span class="icon"><i class="fas fa-sign-in-alt"></i></span>
+                                            <span>Login</span>
+                                        </button>
+                                    </p>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
