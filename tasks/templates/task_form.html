@@ -13,6 +13,9 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
   </head>
   <body>
     <section class="section">
@@ -28,93 +31,38 @@
                 <form method="post">
                   {% csrf_token %}
 
-                  <!-- TITLE -->
                   <div class="field">
                     <label class="label">Title</label>
                     <div class="control">
-                      <input
-                        class="input"
-                        type="text"
-                        name="title"
-                        placeholder="Write a short descriptive title"
-                        value="{{ form.title.value|default_if_none:'' }}"
-                      />
+                        {{ form.title }}
                     </div>
-                    {% if form.title.errors %}
-                    <p class="help is-danger">{{ form.title.errors.0 }}</p>
-                    {% endif %}
-                  </div>
+                </div>
 
-                  <!-- DESCRIPTION -->
                   <div class="field">
                     <label class="label">Description</label>
                     <div class="control">
-                      <textarea
-                        class="textarea"
-                        name="description"
-                        placeholder="Optional: write additional details"
-                      >
-{{ form.description.value }}</textarea
-                      >
+                        {{ form.description }}
                     </div>
-                  </div>
+                </div>
 
-                  <!-- DATE -->
                   <div class="field">
                     <label class="label">Date</label>
                     <div class="control">{{ form.date }}</div>
                   </div>
 
-                 <!-- TAGS – CHIPS UI -->
                 <div class="field">
-                    <label class="label">Tags</label>
-
-                    <!-- Where the chips will appear -->
-                    <div id="tag-chips" class="tags"></div>
-
-                    <!-- Input to add tags -->
-                    <div class="field has-addons mt-2">
-                        <div class="control is-expanded">
-                            <input id="tag-input"
-                                type="text"
-                                class="input"
-                                placeholder="Type a tag and press Enter">
-                        </div>
-                        <div class="control">
-                            <button id="add-tag-btn"
-                                    type="button"
-                                    class="button is-info">
-                                <span class="icon"><i class="fas fa-plus"></i></span>
-                                <span>Add</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <p class="help">
-                        Press <strong>Enter</strong> or click “Add” to add a tag.
-                        Click the <span class="tag is-light"><button class="delete is-small"></button></span> icon to remove.
-                    </p>
-
-                    <!-- Your original select (now hidden, still used by Django) -->
-                    <div class="is-hidden">
-                        <select name="tags" multiple size="4" id="id_tags_select">
-                            {% for tag in form.fields.tags.queryset %}
-                                <option value="{{ tag.id }}"
-                                    {% if tag.id|stringformat:"s" in form.tags.value|stringformat:"s" %}
-                                        selected
-                                    {% endif %}>
-                                    {{ tag.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-
-                        <!-- Hidden input for new tags created via chips -->
-                        <input type="hidden" name="new_tags" id="id_new_tags">
-                    </div>
+                    <div class="field">
+                      <label class="label">Tags</label>
+                      <div class="control">
+                          <input name="tags_input" 
+                                class="input tagify-input" 
+                                placeholder="Type and press enter..."
+                                value="{{ current_tags_string }}">
+                      </div>
+                      <p class="help">Type a tag name and hit Enter.</p>
+                  </div>
                 </div>
 
-
-                  <!-- PRIORITY -->
                   <div class="field">
                     <label class="label">Priority (1 = Low, 5 = High)</label>
                     <div class="control">
@@ -129,24 +77,17 @@
                     </div>
                   </div>
 
-                  <!-- COMPLETED -->
                   <div class="field">
                     <label class="checkbox">
                       <input
                         type="checkbox"
                         name="completed"
-                        {%
-                        if
-                        form.completed.value
-                        %}checked{%
-                        endif
-                        %}
+                        {% if form.completed.value %}checked{% endif %}
                       />
                       Mark as completed
                     </label>
                   </div>
 
-                  <!-- ACTION BUTTONS -->
                   <div class="field is-grouped is-grouped-right mt-5">
                     <p class="control">
                       <a href="{% url 'index' %}" class="button is-light">
@@ -168,152 +109,10 @@
         </div>
       </div>
     </section>
-
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        console.log("Tag chips script loaded");
-
-        const chipContainer = document.getElementById("tag-chips");
-        const textInput = document.getElementById("tag-input");
-        const addBtn = document.getElementById("add-tag-btn");
-        const select = document.querySelector('select[name="tags"]');
-        const newTagsInput = document.getElementById("id_new_tags");
-
-        // Basic guard: if no chips container, bail.
-        if (!chipContainer || !textInput || !addBtn) {
-          console.log("Missing core tag elements");
-          return;
-        }
-
-        function currentNewTagsList() {
-          if (!newTagsInput) return [];
-          return newTagsInput.value
-            .split(",")
-            .map((t) => t.trim())
-            .filter((t) => t.length > 0);
-        }
-
-        function setNewTagsList(list) {
-          if (!newTagsInput) return;
-          newTagsInput.value = list.join(", ");
-        }
-
-        function chipExists(name) {
-          const lower = name.toLowerCase();
-          return Array.from(chipContainer.querySelectorAll(".tag-label")).some(
-            (span) => span.textContent.toLowerCase() === lower
-          );
-        }
-
-        function createChipElement(name, type, value) {
-          const tag = document.createElement("span");
-          tag.className = "tag is-info is-light is-rounded";
-          tag.dataset.type = type; // "existing" | "new"
-          if (value !== undefined) {
-            tag.dataset.value = value;
-          }
-
-          const labelSpan = document.createElement("span");
-          labelSpan.className = "tag-label";
-          labelSpan.textContent = name;
-          tag.appendChild(labelSpan);
-
-          const del = document.createElement("button");
-          del.type = "button";
-          del.className = "delete is-small";
-          del.addEventListener("click", function () {
-            const tagName = labelSpan.textContent;
-
-            if (tag.dataset.type === "existing" && select) {
-              // Unselect matching option
-              Array.from(select.options).forEach(function (opt) {
-                if (opt.value === tag.dataset.value) {
-                  opt.selected = false;
-                }
-              });
-            } else if (tag.dataset.type === "new") {
-              const list = currentNewTagsList().filter(
-                (t) => t.toLowerCase() !== tagName.toLowerCase()
-              );
-              setNewTagsList(list);
-            }
-
-            tag.remove();
-          });
-          tag.appendChild(del);
-
-          return tag;
-        }
-
-        function addExistingChip(name, value) {
-          if (chipExists(name)) return;
-          const chip = createChipElement(name, "existing", value);
-          chipContainer.appendChild(chip);
-        }
-
-        function addNewChip(name) {
-          if (!name) return;
-          if (chipExists(name)) return;
-
-          const list = currentNewTagsList();
-          if (!list.some((t) => t.toLowerCase() === name.toLowerCase())) {
-            list.push(name);
-            setNewTagsList(list);
-          }
-
-          const chip = createChipElement(name, "new");
-          chipContainer.appendChild(chip);
-        }
-
-        function handleAddFromInput() {
-          const raw = textInput.value.trim();
-          if (!raw) return;
-
-          console.log("Add tag clicked with value:", raw);
-
-          // Try to match an existing tag from the select
-          let matchedExisting = null;
-          if (select) {
-            Array.from(select.options).forEach(function (opt) {
-              if (opt.text.toLowerCase() === raw.toLowerCase()) {
-                matchedExisting = opt;
-              }
-            });
-          }
-
-          if (matchedExisting) {
-            matchedExisting.selected = true;
-            addExistingChip(matchedExisting.text, matchedExisting.value);
-          } else {
-            // Treat as new tag name
-            addNewChip(raw);
-          }
-
-          textInput.value = "";
-        }
-
-        // Initialize chips from pre-selected options (edit case)
-        if (select) {
-          Array.from(select.options).forEach(function (opt) {
-            if (opt.selected) {
-              addExistingChip(opt.text, opt.value);
-            }
-          });
-        }
-
-        // Attach events
-        textInput.addEventListener("keydown", function (e) {
-          if (e.key === "Enter" || e.key === ",") {
-            e.preventDefault();
-            handleAddFromInput();
-          }
-        });
-
-        addBtn.addEventListener("click", function () {
-          handleAddFromInput();
-        });
-
-        console.log("Tag chips script initialized");
+      var input = document.querySelector('.tagify-input');
+      new Tagify(input, {
+          originalInputValueFormat: valuesArr => valuesArr.map(item => item.value).join(',')
       });
     </script>
   </body>

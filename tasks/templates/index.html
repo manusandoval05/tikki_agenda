@@ -180,26 +180,12 @@
                                         <p class="mt-2">
                                             
                                             {% with task.priority|default:3 as pr %}
-                                            {% if pr >= 4 %}
-                                                {% with "is-danger" as priority_color %}
-                                                    <span class="tag {{ priority_color }} is-light is-rounded is-size-7">
-                                                        Priority: {{ pr }}
-                                                    </span>
-                                                {% endwith %}
-                                            {% elif pr == 3 %}
-                                                {% with "is-warning" as priority_color %}
-                                                    <span class="tag {{ priority_color }} is-light is-rounded is-size-7">
-                                                        Priority: {{ pr }}
-                                                    </span>
-                                                {% endwith %}
-                                            {% else %}
-                                                {% with "is-info" as priority_color %}
-                                                    <span class="tag {{ priority_color }} is-light is-rounded is-size-7">
-                                                        Priority: {{ pr }}
-                                                    </span>
-                                                {% endwith %}
-                                            {% endif %}
-                                        {% endwith %}
+                                            
+                                                <span class="tag {{ task.priority_color }} is-light is-rounded is-size-7">
+                                                    Priority: {{ pr }}
+                                                </span>
+                                    
+                                            {% endwith %}
 
                                         </p>
 
@@ -244,21 +230,8 @@
                     <p class="title is-6">Overview</p>
                     <p class="is-size-7">Completed tasks: <strong>{{ completed_tasks }} / {{ total_tasks }}</strong></p>
                     <progress class="progress is-small is-info" value="{{ percentage }}" max="100">
-                        Loading…
                     </progress>
                 </div>
-
-                <div class="box">
-                    <p class="title is-6">Legend</p>
-                    <div class="content is-size-7">
-                        <p><span class="icon has-text-success"><i class="fas fa-check-circle"></i></span> Completed task</p>
-                        <p><span class="icon has-text-warning"><i class="far fa-circle"></i></span> Open task</p>
-                        <p><span class="tag is-danger is-light is-rounded">Priority 4–5</span> High priority</p>
-                        <p><span class="tag is-warning is-light is-rounded">Priority 3</span> Medium priority</p>
-                        <p><span class="tag is-info is-light is-rounded">Priority 1–2</span> Low priority</p>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>

@@ -5,81 +5,49 @@ from django.db.models import Q
 from django import forms
 from .models import Task, Tag
 
-
-class TaskCreateView(CreateView):
-    model = Task
-    fields = ["title", "description", "priority", "date", "tags"]
+class TaskMethods:
     template_name = "task_form.html"
-    success_url = "/"
-
+    model = Task
+    fields = ["title", "description", "priority", "date"] 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-
-        # HTML5 date input with ISO format + Bulma class
+        form.fields["title"].widget = forms.TextInput(
+            attrs={"class": "input", "placeholder": "Title"}
+        )
+        form.fields["description"].widget = forms.Textarea(
+            attrs={"class": "textarea", "placeholder": "Description", "rows": 4}
+        )
         form.fields["date"].widget = forms.DateInput(
             format="%Y-%m-%d",
             attrs={"type": "date", "class": "input"},
         )
         form.fields["date"].input_formats = ["%Y-%m-%d"]
 
-        # Style tags as Bulma multiple select (even if later you hide it for chips)
-        form.fields["tags"].widget = forms.SelectMultiple(
-            attrs={"class": "select is-multiple", "size": 6}
-        )
-
         return form
 
     def form_valid(self, form):
-        # First save the Task (without yet handling new tags)
-        response = super().form_valid(form)
-
-        # Read comma-separated new tags from POST (chips JS will populate this)
-        raw_new_tags = self.request.POST.get("new_tags", "")
-        if raw_new_tags:
-            names = [t.strip() for t in raw_new_tags.split(",") if t.strip()]
+        self.object = form.save()
+        tag_data = self.request.POST.get("tags_input", "")
+        if tag_data:
+            names = [t.strip() for t in tag_data.split(",") if t.strip()]
             for name in names:
                 tag, _ = Tag.objects.get_or_create(name=name)
-                self.object.tags.add(tag)  # self.object is the created Task
+                self.object.tags.add(tag) 
+        return redirect("index")
 
-        return response
-
-
-class TaskUpdateView(UpdateView):
+class TaskCreateView(TaskMethods, CreateView):
     model = Task
-    fields = ["title", "description", "priority", "date", "completed", "tags"]
-    template_name = "task_form.html"
-    success_url = "/"
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
 
-        # HTML5 date input with ISO format + Bulma class
-        form.fields["date"].widget = forms.DateInput(
-            format="%Y-%m-%d",
-            attrs={"type": "date", "class": "input"},
-        )
-        form.fields["date"].input_formats = ["%Y-%m-%d"]
+class TaskUpdateView(TaskMethods, UpdateView):
+    model = Task
+    fields = ["title", "description", "priority", "date", "completed"]
 
-        # Style tags as Bulma multiple select (even if later you hide it for chips)
-        form.fields["tags"].widget = forms.SelectMultiple(
-            attrs={"class": "select is-multiple", "size": 6}
-        )
-
-        return form
-
-    def form_valid(self, form):
-        # First save the Task (without yet handling new tags)
-        response = super().form_valid(form)
-
-        # Read comma-separated new tags from POST (chips JS will populate this)
-        raw_new_tags = self.request.POST.get("new_tags", "")
-        if raw_new_tags:
-            names = [t.strip() for t in raw_new_tags.split(",") if t.strip()]
-            for name in names:
-                tag, _ = Tag.objects.get_or_create(name=name)
-                self.object.tags.add(tag)  # self.object is the created Task
-
-        return response
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_tags = self.object.tags.all()
+        context['current_tags_string'] = ", ".join([t.name for t in current_tags])
+        return context
 
 
 def index(request):
@@ -135,7 +103,6 @@ def task_delete(request, pk):
     task = get_object_or_404(Task, pk=pk)
     task.delete()
     return redirect("index")
-
 
 @require_POST
 def task_toggle_completed(request, pk):
